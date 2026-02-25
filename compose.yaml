@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=apiforge'
+      - 'POSTGRES_PASSWORD=apiforge123'
+      - 'POSTGRES_USER=apiforge'
+    ports:
+      - '5433:5432'
