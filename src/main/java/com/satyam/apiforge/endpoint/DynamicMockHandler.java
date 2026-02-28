@@ -58,7 +58,7 @@ public class DynamicMockHandler {
 
         return endpointRepository
                 .findByWorkspaceSlugAndMethodAndPath(slug, method, path)
-//                .filter(MockEndpoint::isActive)
+                .filter(MockEndpoint::isActive)
                 .map(endpoint -> {
                     try {
                         if (endpoint.getDelayMs() > 0) {

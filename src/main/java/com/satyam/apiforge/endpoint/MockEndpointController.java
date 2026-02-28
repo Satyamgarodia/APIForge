@@ -1,5 +1,6 @@
 package com.satyam.apiforge.endpoint;
 
+import com.satyam.apiforge.common.ApiResponse;
 import com.satyam.apiforge.security.User;
 import com.satyam.apiforge.workspace.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class MockEndpointController {
                                     @RequestBody CreateEndpointRequest request,
                                     @AuthenticationPrincipal User user) {
 
-        return workspaceRepository.findById(workspaceId)
+        return workspaceRepository.findByIdWithOwner(workspaceId)
                 .filter(w -> w.getOwner().getId().equals(user.getId()))
                 .map(workspace -> {
                     MockEndpoint endpoint = MockEndpoint.builder()
@@ -35,7 +36,7 @@ public class MockEndpointController {
                             .statusCode(request.statusCode())
                             .delayMs(request.delayMs())
                             .build();
-                    return ResponseEntity.ok(endpointRepository.save(endpoint));
+                    return ResponseEntity.ok(ApiResponse.ok(endpointRepository.save(endpoint)));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -46,7 +47,7 @@ public class MockEndpointController {
                                                      @AuthenticationPrincipal User user) {
         return workspaceRepository.findById(workspaceId)
                 .filter(w -> w.getOwner().getId().equals(user.getId()))
-                .map(w -> ResponseEntity.ok(endpointRepository.findByWorkspaceId(workspaceId)))
+                .map(w -> ResponseEntity.ok((endpointRepository.findByWorkspaceId(workspaceId))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -66,7 +67,26 @@ public class MockEndpointController {
                     endpoint.setResponseBody(request.responseBody());
                     endpoint.setStatusCode(request.statusCode());
                     endpoint.setDelayMs(request.delayMs());
-                    return ResponseEntity.ok(endpointRepository.save(endpoint));
+                    return ResponseEntity.ok(ApiResponse.ok(endpointRepository.save(endpoint)));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Toogle Active/Inactive State of Endpoint
+    @PatchMapping("/{endpointId}/toggle")
+    public ResponseEntity<?> toggle(@PathVariable UUID workspaceId,
+                                    @PathVariable UUID endpointId,
+                                    @AuthenticationPrincipal User user) {
+
+        return workspaceRepository.findById(workspaceId)
+                .filter(w -> w.getOwner().getId().equals(user.getId()))
+                .flatMap(w -> endpointRepository.findById(endpointId))
+                .map(endpoint -> {
+                    endpoint.setActive(!endpoint.isActive());
+                    endpointRepository.save(endpoint);
+                    String status = endpoint.isActive() ? "activated" : "deactivated";
+                    return ResponseEntity.ok(
+                            ApiResponse.ok("Endpoint " + status, endpoint));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -82,7 +102,7 @@ public class MockEndpointController {
                 .flatMap(w -> endpointRepository.findById(endpointId))
                 .map(endpoint -> {
                     endpointRepository.delete(endpoint);
-                    return ResponseEntity.ok().body("Deleted");
+                    return ResponseEntity.ok(ApiResponse.ok("Deleted endpoint", endpoint));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
