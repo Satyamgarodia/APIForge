@@ -3,10 +3,12 @@ spring:
     name: apiforge
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/apiforge
-    username: apiforge
-    password: apiforge123
+    url: jdbc:postgresql://35.200.160.109:5432/apiforge
+    username: satyam
+    password: 030405@Saira
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
 
   jpa:
     hibernate:
@@ -16,15 +18,25 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          time_zone: UTC
 
-  security:
-    jwt:
-      secret: apiforge-secret-key-change-in-production
-      expiry: 86400000
+  docker:
+    compose:
+      enabled: false
+  ai:
+    google:
+      genai:
+        api-key: AIzaSyBT48JIIk3gUEzKzXKRV4YxpqXgh7epJgg
+        project-id: garodiatraders
+        chat:
+          options:
+            model: gemini-2.5-flash-lite
+
 
 server:
   port: 8080
 
 logging:
   level:
-    com.apiforge: DEBUG
+    com.satyam: DEBUG
